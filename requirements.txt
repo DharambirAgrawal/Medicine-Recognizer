@@ -1,0 +1,11 @@
+opencv-contrib-python>=4.5.0
+numpy>=1.20.0
+mediapipe>=0.9.0
+pillow>=9.0.0
+ultralytics>=8.0.0
+torch>=2.2.0
+torchvision>=0.17.0
+pyinstaller
+# tkinter comes built-in with Python
+
+# Optional: install pyopenpose if you have OpenPose configured locally
