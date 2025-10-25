@@ -20,9 +20,10 @@ import sys
 try:
     from medicine_recognizer import MedicineRecognizer
     from abnormal_behavior_detector import AbnormalBehaviorDetector
+    from medicine_counter import MedicineCounter
 except ImportError as e:
     print(f"Error importing modules: {e}")
-    print("Make sure medicine_recognizer.py and abnormal_behavior_detector.py are in the same directory")
+    print("Make sure medicine_recognizer.py, abnormal_behavior_detector.py, and medicine_counter.py are in the same directory")
     sys.exit(1)
 
 
@@ -51,6 +52,7 @@ class AAMAApp:
         # Initialize detectors
         self.medicine_recognizer = None
         self.behavior_detector = None
+        self.medicine_counter = None
         
         # Setup GUI
         self._setup_gui()
@@ -168,6 +170,21 @@ class AAMAApp:
         )
         self.recognize_medicine_btn.pack(fill=tk.X, padx=10, pady=5)
         
+        # Count Medicines button
+        self.count_medicine_btn = tk.Button(
+            medicine_section,
+            text="🔢 Count Medicines",
+            font=("Arial", 10, "bold"),
+            bg="#16a085",
+            fg="white",
+            activebackground="#138d75",
+            activeforeground="white",
+            cursor="hand2",
+            command=self.start_medicine_counting,
+            height=2
+        )
+        self.count_medicine_btn.pack(fill=tk.X, padx=10, pady=5)
+        
         # Behavior Detection Section
         behavior_section = tk.LabelFrame(
             control_frame,
@@ -256,6 +273,10 @@ class AAMAApp:
             self.log("Loading Behavior Detector...")
             self.behavior_detector = AbnormalBehaviorDetector()
             self.log("✓ Behavior Detector loaded")
+            
+            self.log("Loading Medicine Counter...")
+            self.medicine_counter = MedicineCounter()
+            self.log("✓ Medicine Counter loaded")
             
             self.log("System ready! Please select an operation.")
         except Exception as e:
@@ -543,6 +564,30 @@ class AAMAApp:
         thread = threading.Thread(target=self._medicine_recognition_loop, daemon=True)
         thread.start()
     
+    def start_medicine_counting(self):
+        """Start medicine counting mode."""
+        if self.medicine_counter is None:
+            messagebox.showerror("Error", "Medicine Counter not initialized")
+            return
+        
+        self.log("Starting medicine counting...")
+        self.current_mode = 'counting'
+        
+        if not self._start_camera():
+            return
+        
+        # Reset counter
+        self.medicine_counter.reset_count()
+        self.medicine_counter.start_counting()
+        
+        # Update button states
+        self._update_button_states(active=True)
+        
+        # Start processing thread
+        self.stop_thread = False
+        thread = threading.Thread(target=self._medicine_counting_loop, daemon=True)
+        thread.start()
+    
     def start_behavior_detection(self):
         """Start abnormal behavior detection mode."""
         if self.behavior_detector is None:
@@ -569,6 +614,10 @@ class AAMAApp:
         self.stop_thread = True
         self.current_mode = None
         self._stop_capture_preview()
+        
+        # Stop counter if active
+        if self.medicine_counter is not None:
+            self.medicine_counter.stop_counting()
         
         # Stop camera
         self._stop_camera()
@@ -755,6 +804,32 @@ class AAMAApp:
             # Update display
             self._update_video_display(display_frame)
     
+    def _medicine_counting_loop(self):
+        """Main loop for medicine counting."""
+        while not self.stop_thread and self.camera_active:
+            if self.video_capture is None or not self.video_capture.isOpened():
+                break
+            
+            ret, frame = self.video_capture.read()
+            if not ret or frame is None:
+                continue
+            
+            # Count medicines in frame
+            result = self.medicine_counter.count_medicines(frame)
+            
+            # Log count changes
+            if result['count'] > 0:
+                current_count = result['count']
+                if not hasattr(self, '_last_logged_count') or self._last_logged_count != current_count:
+                    self.log(f"📊 Medicines counted: {current_count}")
+                    self._last_logged_count = current_count
+            
+            # Display annotated frame
+            if result['annotated_frame'] is not None:
+                self._update_video_display(result['annotated_frame'])
+            else:
+                self._update_video_display(frame)
+    
     def _update_video_display(self, frame):
         """Update the video display with a new frame."""
         try:
@@ -784,11 +859,13 @@ class AAMAApp:
         if active:
             self.add_medicine_btn.config(state=tk.DISABLED)
             self.recognize_medicine_btn.config(state=tk.DISABLED)
+            self.count_medicine_btn.config(state=tk.DISABLED)
             self.detect_behavior_btn.config(state=tk.DISABLED)
             self.stop_btn.config(state=tk.NORMAL)
         else:
             self.add_medicine_btn.config(state=tk.NORMAL)
             self.recognize_medicine_btn.config(state=tk.NORMAL)
+            self.count_medicine_btn.config(state=tk.NORMAL)
             self.detect_behavior_btn.config(state=tk.NORMAL)
             self.stop_btn.config(state=tk.DISABLED)
     
