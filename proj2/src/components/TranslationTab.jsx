@@ -9,9 +9,10 @@ const languages = [
   { code: "it-IT", name: "Italian", transCode: "it" },
   { code: "hi-IN", name: "Hindi", transCode: "hi" },
   { code: "zh-CN", name: "Chinese", transCode: "zh" },
+  { code: "ne-NP", name: "Nepali", transCode: "ne" },
 ];
 
-const TranslationTab = () => {
+const TranslationTab = ({ t }) => {
   const [isListening, setIsListening] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [spokenText, setSpokenText] = useState("");
@@ -105,11 +106,11 @@ const TranslationTab = () => {
 
   return (
     <div className="tab-content translation-tab">
-      <h2>Voice Translator</h2>
+      <h2>{t.voiceTranslator}</h2>
 
       <div className="controls">
         <div className="control-group">
-          <label>Speak in:</label>
+          <label>{t.speakIn}</label>
           <select
             value={sourceLang}
             onChange={(e) => setSourceLang(e.target.value)}
@@ -125,7 +126,7 @@ const TranslationTab = () => {
         <span className="arrow">➡️</span>
 
         <div className="control-group">
-          <label>Translate to:</label>
+          <label>{t.translateTo}</label>
           <select
             value={targetLang}
             onChange={(e) => setTargetLang(e.target.value)}
@@ -142,7 +143,7 @@ const TranslationTab = () => {
       <div className="translation-area">
         <div className="card input-card">
           <div className="card-header">
-            <h3>Input</h3>
+            <h3>{t.input}</h3>
             <button
               className="clear-button"
               onClick={() => {
@@ -159,7 +160,7 @@ const TranslationTab = () => {
             className="modern-textarea"
             value={spokenText}
             onChange={(e) => setSpokenText(e.target.value)}
-            placeholder="Type here or use the microphone..."
+            placeholder={t.placeholder}
           />
 
           <div className="action-row">
@@ -168,7 +169,7 @@ const TranslationTab = () => {
               onClick={toggleListening}
               title="Toggle Microphone"
             >
-              {isListening ? "🔴 Stop" : "🎤 Speak"}
+              {isListening ? t.stop : t.speak}
             </button>
 
             <button
@@ -176,22 +177,22 @@ const TranslationTab = () => {
               onClick={() => handleTranslate(spokenText)}
               disabled={!spokenText}
             >
-              Translate
+              {t.translateBtn}
             </button>
           </div>
         </div>
 
         <div className="card output-card">
           <div className="card-header">
-            <h3>Translation</h3>
+            <h3>{t.translation}</h3>
           </div>
 
           <div className="translation-result">
             {isTranslating ? (
-              <div className="loading-pulse">Translating...</div>
+              <div className="loading-pulse">{t.translating}</div>
             ) : (
               <p className="result-text">
-                {translatedText || "Translation will appear here..."}
+                {translatedText || t.translationPlaceholder}
               </p>
             )}
           </div>
@@ -201,7 +202,7 @@ const TranslationTab = () => {
             onClick={handleSpeak}
             disabled={!translatedText}
           >
-            🔊 Play Audio
+            {t.playAudio}
           </button>
         </div>
       </div>
