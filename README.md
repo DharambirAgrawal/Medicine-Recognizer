@@ -1,4 +1,4 @@
-# AAMA — AI-Assisted Medical Assistant
+# AAMA: AI-Assisted Medical Assistant
 
 ![Python](https://img.shields.io/badge/python-3.6%2B-blue)
 
@@ -12,11 +12,11 @@ The repository also includes `proj2`, a standalone React web app with a multilin
 
 ## Features
 
-- **Medicine recognition** — capture reference images of a medicine, then identify it later from a live camera feed with a confidence score and bounding box.
-- **Medicine counting** — real-time counting of pills, tablets, or packages in the camera view, with per-object bounding boxes, IDs, and confidence scores.
-- **Abnormal behavior detection** — pose-based analysis that flags falls, seizure-like motion, possible heart-attack indicators, unusual movement, and prolonged immobility, saving annotated frames and metadata for each alert.
-- **Guided reference capture** — live preview, countdown timer, on-screen capture guide, and automatic background removal when saving new reference images.
-- **In-app logging** — timestamped status log and alert history inside the GUI.
+- **Medicine recognition**: capture reference images of a medicine, then identify it later from a live camera feed with a confidence score and bounding box.
+- **Medicine counting**: real-time counting of pills, tablets, or packages in the camera view, with per-object bounding boxes, IDs, and confidence scores.
+- **Abnormal behavior detection**: pose-based analysis that flags falls, seizure-like motion, possible heart-attack indicators, unusual movement, and prolonged immobility, saving annotated frames and metadata for each alert.
+- **Guided reference capture**: live preview, countdown timer, on-screen capture guide, and automatic background removal when saving new reference images.
+- **In-app logging**: timestamped status log and alert history inside the GUI.
 
 ## Tech Stack
 
@@ -31,18 +31,18 @@ The repository also includes `proj2`, a standalone React web app with a multilin
 
 ### Medicine recognition (`medicine_recognizer.py`)
 
-1. **Detection/extraction** — each frame is passed to YOLOv8-nano to locate the medicine's bounding box (and segmentation mask, when available). If the deep-learning stack can't be loaded, the app falls back to an OpenCV pipeline that combines GrabCut, HSV color segmentation, and contour analysis to isolate the object from the background.
-2. **Feature extraction** — the cropped region is run through EfficientNet-B0 to produce an embedding vector from the layer before the classification head. Color histograms and shape (Hu moment) descriptors are computed as well, for the fallback path.
-3. **Matching** — a query embedding is compared against every stored reference sample per medicine using cosine similarity; the best-scoring medicine is returned if it clears `confidence_threshold`. Without embeddings, matching falls back to color-histogram correlation (`cv2.compareHist`).
-4. **Reference storage** — captured samples are saved to `medicine_references/` as timestamped JPEGs, and computed features are cached to `models/medicine_db.pkl` to avoid recomputation on startup.
+1. **Detection/extraction**: each frame is passed to YOLOv8-nano to locate the medicine's bounding box (and segmentation mask, when available). If the deep-learning stack can't be loaded, the app falls back to an OpenCV pipeline that combines GrabCut, HSV color segmentation, and contour analysis to isolate the object from the background.
+2. **Feature extraction**: the cropped region is run through EfficientNet-B0 to produce an embedding vector from the layer before the classification head. Color histograms and shape (Hu moment) descriptors are computed as well, for the fallback path.
+3. **Matching**: a query embedding is compared against every stored reference sample per medicine using cosine similarity, and the best-scoring medicine is returned if it clears `confidence_threshold`. Without embeddings, matching falls back to color-histogram correlation (`cv2.compareHist`).
+4. **Reference storage**: captured samples are saved to `medicine_references/` as timestamped JPEGs, and computed features are cached to `models/medicine_db.pkl` to avoid recomputation on startup.
 
 ### Medicine counting (`medicine_counter.py`)
 
-Combines three independent detectors — adaptive-threshold contour detection, HSV color segmentation for common pill colors, and OpenCV `SimpleBlobDetector` for round shapes — merges their results with non-maximum suppression to remove duplicates, and smooths the count over a rolling window of frames for a stable readout.
+Combines three independent detectors (adaptive-threshold contour detection, HSV color segmentation for common pill colors, and OpenCV `SimpleBlobDetector` for round shapes), merges their results with non-maximum suppression to remove duplicates, and smooths the count over a rolling window of frames for a stable readout.
 
 ### Abnormal behavior detection (`abnormal_behavior_detector.py`)
 
-Tracks human pose landmarks per frame (MediaPipe Pose by default) alongside a background-subtraction motion signal, then runs the recent pose/motion history through a set of heuristics to flag falls, seizure-like oscillation, possible heart-attack indicators (e.g. chest-clutching posture with reduced motion), unusual motion patterns, and sustained immobility. Triggered alerts save annotated frames and a metadata file under `abnormal_behavior_alerts/`.
+Tracks human pose landmarks per frame (MediaPipe Pose by default) alongside a background-subtraction motion signal, then runs the recent pose/motion history through a set of heuristics to flag falls, seizure-like oscillation, possible heart-attack indicators (e.g., chest-clutching posture with reduced motion), unusual motion patterns, and sustained immobility. Triggered alerts save annotated frames and a metadata file under `abnormal_behavior_alerts/`.
 
 ## Getting Started
 
@@ -62,7 +62,7 @@ source env/bin/activate      # Windows: env\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-On first run, `medicine_recognizer.py` will try to load `yolov8n.pt` and pretrained EfficientNet-B0 weights automatically (downloaded by Ultralytics/TorchVision on first use).
+On first run, `medicine_recognizer.py` downloads `yolov8n.pt` and pretrained EfficientNet-B0 weights automatically via Ultralytics and TorchVision.
 
 ### Running the app
 
@@ -74,10 +74,10 @@ On Windows, `launch_aama.bat` / `launch_aama.ps1` activate the virtual environme
 
 From the GUI you can:
 
-- **Add Medicine Reference** — capture one or more labeled reference images for a medicine.
-- **Recognize Medicine** — identify a medicine held up to the camera.
-- **Count Medicines** — start a live count of pills/packages in view.
-- **Detect Abnormal Behavior** — monitor a person for falls, seizures, or other emergency indicators.
+- **Add Medicine Reference**: capture one or more labeled reference images for a medicine.
+- **Recognize Medicine**: identify a medicine held up to the camera.
+- **Count Medicines**: start a live count of pills/packages in view.
+- **Detect Abnormal Behavior**: monitor a person for falls, seizures, or other emergency indicators.
 
 ### Testing the counter standalone
 
@@ -87,12 +87,12 @@ python medicine_counter.py
 
 Runs a standalone OpenCV window (`Q` to quit, `R` to reset, `S` to print statistics) for tuning without the full GUI.
 
-## Web companion (`proj2/`)
+## Web Companion (`proj2/`)
 
 A separate Vite + React app, unrelated to the Python CV pipeline:
 
-- **Disease encyclopedia** — a searchable, filterable static reference of conditions.
-- **Speech translator** — captures speech via the browser's Web Speech API and translates it using the MyMemory translation API, across several languages including English, Spanish, Hindi, and Nepali.
+- **Disease encyclopedia**: a searchable, filterable static reference of conditions.
+- **Speech translator**: captures speech via the browser's Web Speech API and translates it using the MyMemory translation API, across several languages including English, Spanish, Hindi, and Nepali.
 
 ```bash
 cd proj2
